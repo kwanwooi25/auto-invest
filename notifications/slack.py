@@ -8,7 +8,7 @@ load_dotenv()
 
 URL = os.getenv('SLACK_WEBHOOK_URL')
 
-def SendMessage(msg, title='자동매매 알림'):
+def sendMessage(message: str, title: str = '자동매매 알림'):
     try:
         # 메시지 전송
         requests.post(
@@ -23,7 +23,7 @@ def SendMessage(msg, title='자동매매 알림'):
                         'type': 'section',
                         'text': {
                             'type': 'mrkdwn',
-                            'text': msg
+                            'text': message
                         }
                     }
                 ]

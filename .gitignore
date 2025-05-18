@@ -7,3 +7,8 @@ connect.sh
 
 # env file
 .env
+
+# local only
+back_test
+temp
+json
