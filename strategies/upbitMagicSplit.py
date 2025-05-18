@@ -246,7 +246,7 @@ def calculateProfit(balances, ticker):
 
 upbit = pyupbit.Upbit(UPBIT_ACCESS_KEY, UPBIT_SECRET_KEY)
 
-dayInNumber = time.gmttime().tm_mday
+dayInNumber = time.gmtime().tm_mday
 
 balances = upbit.get_balances()
 
