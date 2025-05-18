@@ -4,8 +4,16 @@ import os
 import pyupbit
 import time
 import json
+import logging
 from common import upbitTools
 from notifications import slack
+
+logger = logging.getLogger(__name__)
+streamHandler = logging.StreamHandler()
+fileHandler = logging.FileHandler('./logs/upbitMagicSplit.log')
+logger.addHandler(streamHandler)
+logger.addHandler(fileHandler)
+logger.setLevel(logging.INFO)
 
 load_dotenv()
 
@@ -19,12 +27,12 @@ def getInvestmentPlans(
   targetStockList: list,
   totalInvestmentAmount: float,
   installmentCount:int = 10):
-  print("========== getInvestmentPlans Start ==========")
+  logger.info("========== getInvestmentPlans Start ==========")
 
   investmentList = list()
 
   for targetStock in targetStockList:
-    print("===== ", targetStock['ticker'], f"({targetStock['investmentRate'] * 100}%)", " =====")
+    logger.info(f"===== {targetStock['ticker']} ({targetStock['investmentRate'] * 100}%) =====")
     ticker = targetStock['ticker']
     investmentRate = targetStock['investmentRate']
 
@@ -33,8 +41,8 @@ def getInvestmentPlans(
     firstInvestmentAmount = totalInvestmentAmountForTicker * 0.4
     remainingInvestmentAmount = totalInvestmentAmountForTicker * 0.6
 
-    print("> 1차수 할당 금액 ", firstInvestmentAmount)
-    print("> 나머지 차수 할당 금액 ", remainingInvestmentAmount)
+    logger.info(f"> 1차수 할당 금액 {firstInvestmentAmount}")
+    logger.info(f"> 나머지 차수 할당 금액 {remainingInvestmentAmount}")
 
     time.sleep(0.2)
 
@@ -62,18 +70,18 @@ def getInvestmentPlans(
     stepGap = gap / installmentCount
     percentGap = round((gap / minPrice) * 100,2)
 
-    print("> 최근 200개 캔들 최저가: ", minPrice)
-    print("> 최근 200개 캔들 최고가: ", maxPrice)
+    logger.info(f"> 최근 200개 캔들 최저가: {minPrice}")
+    logger.info(f"> 최근 200개 캔들 최고가: {maxPrice}")
 
-    print("> 최고 최저가 차이: ", gap)
-    print("> 각 간격 사이의 갭: ", stepGap)
-    print("> 분할이 기준이 되는 갭의 크기: ",percentGap, "%")
+    logger.info(f"> 최고 최저가 차이: {gap}")
+    logger.info(f"> 각 간격 사이의 갭: {stepGap}")
+    logger.info(f"> 분할이 기준이 되는 갭의 크기: {percentGap} %")
 
     targetRate = round((percentGap / installmentCount) * 100,2)
     triggerRate = -round((percentGap / installmentCount) * 100,2)
 
-    print("> 각 차수의 목표 수익률: ", targetRate ,"%")
-    print("> 각 차수의 진입 기준이 되는 이전 차수 손실률: ", triggerRate, "%")
+    logger.info(f"> 각 차수의 목표 수익률: {targetRate} %")
+    logger.info(f"> 각 차수의 진입 기준이 되는 이전 차수 손실률: {triggerRate} %")
 
     #현재 구간을 구할 수 있다.
     currentStep = installmentCount
@@ -84,7 +92,7 @@ def getInvestmentPlans(
         currentStep = step
         break
 
-    print("> 현재 구간: ", currentStep)
+    logger.info(f"> 현재 구간: {currentStep}")
 
     investmentPlans = list()
 
@@ -111,15 +119,15 @@ def getInvestmentPlans(
         if ma60Yesterday >= ma60TwoDaysAgo:
           finalInvestRate += 10
 
-        print(" > 1차수 진입 이동평균선에 의한 비율: ", finalInvestRate , " %")
+        logger.info(f"> 1차수 진입 이동평균선에 의한 비율: {finalInvestRate} %")
 
         # 현재 분할 위치에 따라 최대 40%
 
-        print(" > 1차수 진입 현재 구간에 의한 비율: ", ((int(installmentCount)+1)-currentStep) * (40.0/installmentCount), "%")
+        logger.info(f"> 1차수 진입 현재 구간에 의한 비율: {((int(installmentCount)+1)-currentStep) * (40.0/installmentCount)} %")
         finalInvestRate += (((int(installmentCount)+1)-currentStep) * (40.0/installmentCount))
 
         finalFirstInvestmentAmount = firstInvestmentAmount * (finalInvestRate/100.0)
-        print(" > 1차수 진입 금액 ", finalFirstInvestmentAmount, " 할당 금액 대비 투자 비중: ", finalInvestRate, "%")
+        logger.info(f"> 1차수 진입 금액 {finalFirstInvestmentAmount} 할당 금액 대비 투자 비중: {finalInvestRate} %")
 
         investmentPlans.append({
           "order": order,
@@ -142,13 +150,13 @@ def getInvestmentPlans(
       "investmentPlans": investmentPlans
     })
 
-  pprint(investmentList)
-  print("========== getInvestmentPlans End ==========")
+  logger.info(investmentList)
+  logger.info("========== getInvestmentPlans End ==========")
 
   return investmentList
 
 def loadOrGenerateMagicSplitListItem(investment: dict):
-  print("========== loadOrGenerateMagicSplitListItem Start ==========")
+  logger.info("========== loadOrGenerateMagicSplitListItem Start ==========")
   ticker = investment['ticker']
   investmentPlans = investment['investmentPlans']
 
@@ -158,7 +166,7 @@ def loadOrGenerateMagicSplitListItem(investment: dict):
     with open(JSON_FILE_PATH, 'r') as json_file:
       magicSplitList = json.load(json_file)
   except Exception as e:
-    print("[ERROR]", e)
+    logger.error("[ERROR]", e)
 
   magicSplitData = None
 
@@ -190,16 +198,16 @@ def loadOrGenerateMagicSplitListItem(investment: dict):
     magicSplitList.append(magicSplitListItem)
 
     message = f"[{STRATEGY_NAME}] [{ticker}] 투자 준비 완료!"
-    print(message)
+    logger.info(message)
     slack.sendMessage(message)
 
     try:
       with open(JSON_FILE_PATH, 'w') as json_file:
         json.dump(magicSplitList, json_file)
     except Exception as e:
-      print("[ERROR]", e)
+      logger.error("[ERROR]", e)
 
-    print("========== loadOrGenerateMagicSplitListItem End ==========")
+    logger.info("========== loadOrGenerateMagicSplitListItem End ==========")
 
   return magicSplitList
 
@@ -240,7 +248,7 @@ def calculateProfit(balances, ticker):
         break
 
     except Exception as e:
-      print("[ERROR]", e)
+      logger.error("[ERROR]", e)
 
   return profit
 
@@ -297,7 +305,7 @@ for investment in investmentList:
     if magicSplit['ticker'] == ticker:
       time.sleep(0.3)
       df = pyupbit.get_ohlcv(ticker, interval="day")
-      pprint(df)
+      logger.info(df)
 
       # 전일 시가
       yesterdayOpeningPrice = df['open'].iloc[-2]
@@ -322,7 +330,7 @@ for investment in investmentList:
                 purchasePlan['amount'] = upbit.get_balance(ticker)
 
                 message = f"[{STRATEGY_NAME}] [{ticker}] 기존 잔고로 1차 투자를 대체합니다!"
-                print(message)
+                logger.info(message)
                 slack.sendMessage(message)
               else:
                 # 1차수 투자 계획
@@ -343,7 +351,7 @@ for investment in investmentList:
                 purchasePlan['amount'] = abs(upbit.get_balance(ticker) - existingCoinAmount)
 
                 message = f"[{STRATEGY_NAME}] [{ticker}] 1차 투자 완료!"
-                print(message)
+                logger.info(message)
                 slack.sendMessage(message)
 
               with open(JSON_FILE_PATH, 'w') as json_file:
@@ -397,7 +405,7 @@ for investment in investmentList:
             if isAmountToSellAdjusted == True:
               message = f"[{STRATEGY_NAME}] [{ticker}] {purchasePlan['order']}차수 수익 매도 완료! 차수 목표수익률 {selectedInvestmentPlan['targetRate']}% 만족 매도할 수량이 보유 수량보다 많은 상태라 모두 매도함!"
 
-            print(message)
+            logger.info(message)
             slack.sendMessage(message)
 
             # 1차수 매도인 경우 오늘 날짜를 넣어서 오늘 다시 1차 매수가 되지 않도록 함
@@ -415,7 +423,7 @@ for investment in investmentList:
             if previousPurchasePlan is not None and previousPurchasePlan['hasBought'] == True:
               previousProfitRate = (currentPrice - previousPurchasePlan['price']) / previousPurchasePlan['price'] * 100.0
 
-              print(f"{ticker} {purchasePlan['order']}차수 수익률: {round(previousProfitRate, 2)}% (트리거수익률: {selectedInvestmentPlan['triggerRate']}%)")
+              logger.info(f"{ticker} {purchasePlan['order']}차수 수익률: {round(previousProfitRate, 2)}% (트리거수익률: {selectedInvestmentPlan['triggerRate']}%)")
 
               additionalCondition = True
 
@@ -448,7 +456,7 @@ for investment in investmentList:
                   json.dump(magicSplitList, json_file)
 
                 message = f"[{STRATEGY_NAME}] [{ticker}] {purchasePlan['order']}차수 매수 완료! 이전 차수 손실률: {selectedInvestmentPlan['triggerRate']}% 만족"
-                print(message)
+                logger.info(message)
                 slack.sendMessage(message)
 
       isFullyBought = True
@@ -466,7 +474,7 @@ for investment in investmentList:
 
         if (lastPurchaseProfitRate <= lastInvestmentPlan['triggerRate']):
           message = f"[{STRATEGY_NAME}] [{ticker}] 풀매수 상태인데 추가 하력하여 2차수 손절 및 초기화를 진행합니다!"
-          print(message)
+          logger.info(message)
           slack.sendMessage(message)
 
           secondPurchasePlan = getPurchasePlan(magicSplit['purchasePlans'], 2)
@@ -491,7 +499,7 @@ for investment in investmentList:
           if isAmountToSellAdjusted == True:
             message = f"[{STRATEGY_NAME}] [{ticker}] 2차수 손절 및 초기화 완료! 매도할 수량이 보유 수량보다 많은 상태라 모두 매도함!"
 
-          print(message)
+          logger.info(message)
           slack.sendMessage(message)
 
           for i in range(int(installmentCount)):
@@ -506,7 +514,7 @@ for investment in investmentList:
                 purchasePlan['amount'] = 0
 
                 message = f"[{STRATEGY_NAME}] [{ticker}] {order}차수 비워둠!\n {installmentCount}차수를 새로 매수할 수 있음!"
-                print(message)
+                logger.info(message)
                 slack.sendMessage(message)
 
               else:
@@ -515,11 +523,11 @@ for investment in investmentList:
                 purchasePlan['amount'] = magicSplit['purchasePlans'][i + 1]['amount']
 
                 message = f"[{STRATEGY_NAME}] [{ticker}] {order + 1}차수 데이터를 {order}차수로 옮김!"
-                print(message)
+                logger.info(message)
                 slack.sendMessage(message)
 
           with open(JSON_FILE_PATH, 'w') as json_file:
             json.dump(magicSplitList, json_file)
 
 for magicSplit in magicSplitList:
-  print(f"[{STRATEGY_NAME}] [{magicSplit['ticker']}] 누적 실현 손익: {magicSplit['realizedPNL']}")
+  logger.info(f"[{STRATEGY_NAME}] [{magicSplit['ticker']}] 누적 실현 손익: {magicSplit['realizedPNL']}")
