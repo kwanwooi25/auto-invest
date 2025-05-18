@@ -11,7 +11,7 @@ from notifications import slack
 logger = logging.getLogger(__name__)
 formatter = logging.Formatter('[%(asctime)s][%(levelname)s|%(filename)s:%(lineno)s] >> %(message)s')
 streamHandler = logging.StreamHandler()
-fileHandler = logging.FileHandler('./logs/upbitMagicSplit.log')
+fileHandler = logging.handlers.RotatingFileHandler('./logs/upbitMagicSplit.log', maxBytes=1024*1024*100, backupCount=10)
 streamHandler.setFormatter(formatter)
 fileHandler.setFormatter(formatter)
 logger.addHandler(streamHandler)
