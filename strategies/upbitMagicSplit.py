@@ -84,8 +84,8 @@ def getInvestmentPlans(
     logger.info(f"> 각 간격 사이의 갭: {stepGap}")
     logger.info(f"> 분할이 기준이 되는 갭의 크기: {percentGap} %")
 
-    targetRate = round((percentGap / installmentCount) * 100,2)
-    triggerRate = -round((percentGap / installmentCount) * 100,2)
+    targetRate = round((percentGap / installmentCount),2)
+    triggerRate = -round((percentGap / installmentCount),2)
 
     logger.info(f"> 각 차수의 목표 수익률: {targetRate} %")
     logger.info(f"> 각 차수의 진입 기준이 되는 이전 차수 손실률: {triggerRate} %")
