@@ -1,21 +1,25 @@
-from pprint import pprint
 from dotenv import load_dotenv
 import os
 import pyupbit
 import time
 import json
 import logging
+from logging.handlers import RotatingFileHandler
 from common import upbitTools
 from notifications import slack
 
 logger = logging.getLogger(__name__)
 formatter = logging.Formatter('[%(asctime)s][%(levelname)s|%(filename)s:%(lineno)s] >> %(message)s')
+
 streamHandler = logging.StreamHandler()
-fileHandler = logging.handlers.RotatingFileHandler('./logs/upbitMagicSplit.log', maxBytes=1024*1024*100, backupCount=10)
 streamHandler.setFormatter(formatter)
+
+fileHandler = RotatingFileHandler('./logs/upbitMagicSplit.log', mode='a', maxBytes=1024*1024*100, backupCount=10)
 fileHandler.setFormatter(formatter)
+
 logger.addHandler(streamHandler)
 logger.addHandler(fileHandler)
+
 logger.setLevel(logging.INFO)
 
 load_dotenv()
