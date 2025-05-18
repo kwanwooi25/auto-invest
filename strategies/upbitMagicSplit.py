@@ -9,8 +9,11 @@ from common import upbitTools
 from notifications import slack
 
 logger = logging.getLogger(__name__)
+formatter = logging.Formatter('[%(asctime)s][%(levelname)s|%(filename)s:%(lineno)s] >> %(message)s')
 streamHandler = logging.StreamHandler()
 fileHandler = logging.FileHandler('./logs/upbitMagicSplit.log')
+streamHandler.setFormatter(formatter)
+fileHandler.setFormatter(formatter)
 logger.addHandler(streamHandler)
 logger.addHandler(fileHandler)
 logger.setLevel(logging.INFO)
