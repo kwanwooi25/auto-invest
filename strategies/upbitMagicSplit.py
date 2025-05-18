@@ -329,7 +329,7 @@ for investment in investmentList:
           if purchasePlan['hasBought'] == False and magicSplit['date'] != dayInNumber:
             if yesterdayOpeningPrice < yesterdayClosingPrice and (yesterdayClosingPrice >= ma5Yesterday or ma5TwoDaysAgo <= ma5Yesterday):
               # 누적 실현손익 초기화
-              purchasePlan['realizedPNL'] = 0
+              magicSplit['realizedPNL'] = 0
 
               if upbitTools.getHasCoin(balances, ticker) == True:
                 purchasePlan['hasBought'] = True
