@@ -1,3 +1,9 @@
+# cache
+__pycache__
+
 # keypair
 auto-invest-keypair.pem
 connect.sh
+
+# env file
+.env
