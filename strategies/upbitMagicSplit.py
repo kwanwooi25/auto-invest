@@ -48,8 +48,8 @@ def getInvestmentPlans(
     firstInvestmentAmount = totalInvestmentAmountForTicker * 0.4
     remainingInvestmentAmount = totalInvestmentAmountForTicker * 0.6
 
-    logger.info(f"> 1차수 할당 금액 {firstInvestmentAmount}")
-    logger.info(f"> 나머지 차수 할당 금액 {remainingInvestmentAmount}")
+    logger.info(f"├ 1차수 할당 금액 {firstInvestmentAmount}")
+    logger.info(f"├ 나머지 차수 할당 금액 {remainingInvestmentAmount}")
 
     time.sleep(0.2)
 
@@ -77,18 +77,18 @@ def getInvestmentPlans(
     stepGap = gap / installmentCount
     percentGap = round((gap / minPrice) * 100,2)
 
-    logger.info(f"> 최근 200개 캔들 최저가: {minPrice}")
-    logger.info(f"> 최근 200개 캔들 최고가: {maxPrice}")
+    logger.info(f"├ 최근 200개 캔들 최저가: {minPrice}")
+    logger.info(f"├ 최근 200개 캔들 최고가: {maxPrice}")
 
-    logger.info(f"> 최고 최저가 차이: {gap}")
-    logger.info(f"> 각 간격 사이의 갭: {stepGap}")
-    logger.info(f"> 분할이 기준이 되는 갭의 크기: {percentGap} %")
+    logger.info(f"├ 최고 최저가 차이: {gap}")
+    logger.info(f"├ 각 간격 사이의 갭: {stepGap}")
+    logger.info(f"├ 분할이 기준이 되는 갭의 크기: {percentGap} %")
 
     targetRate = round((percentGap / installmentCount),2)
     triggerRate = -round((percentGap / installmentCount),2)
 
-    logger.info(f"> 각 차수의 목표 수익률: {targetRate} %")
-    logger.info(f"> 각 차수의 진입 기준이 되는 이전 차수 손실률: {triggerRate} %")
+    logger.info(f"├ 각 차수의 목표 수익률: {targetRate} %")
+    logger.info(f"├ 각 차수의 진입 기준이 되는 이전 차수 손실률: {triggerRate} %")
 
     #현재 구간을 구할 수 있다.
     currentStep = installmentCount
@@ -99,7 +99,7 @@ def getInvestmentPlans(
         currentStep = step
         break
 
-    logger.info(f"> 현재 구간: {currentStep}")
+    logger.info(f"├ 현재 구간: {currentStep}")
 
     investmentPlans = list()
 
@@ -126,15 +126,15 @@ def getInvestmentPlans(
         if ma60Yesterday >= ma60TwoDaysAgo:
           finalInvestRate += 10
 
-        logger.info(f"> 1차수 진입 이동평균선에 의한 비율: {finalInvestRate} %")
+        logger.info(f"├ 1차수 진입 이동평균선에 의한 비율: {finalInvestRate} %")
 
         # 현재 분할 위치에 따라 최대 40%
 
-        logger.info(f"> 1차수 진입 현재 구간에 의한 비율: {((int(installmentCount)+1)-currentStep) * (40.0/installmentCount)} %")
+        logger.info(f"├ 1차수 진입 현재 구간에 의한 비율: {((int(installmentCount)+1)-currentStep) * (40.0/installmentCount)} %")
         finalInvestRate += (((int(installmentCount)+1)-currentStep) * (40.0/installmentCount))
 
         finalFirstInvestmentAmount = firstInvestmentAmount * (finalInvestRate/100.0)
-        logger.info(f"> 1차수 진입 금액 {finalFirstInvestmentAmount} 할당 금액 대비 투자 비중: {finalInvestRate} %")
+        logger.info(f"⌊ 1차수 진입 금액 {finalFirstInvestmentAmount} 할당 금액 대비 투자 비중: {finalInvestRate} %")
 
         investmentPlans.append({
           "order": order,
@@ -173,7 +173,7 @@ def loadOrGenerateMagicSplitListItem(investment: dict):
     with open(JSON_FILE_PATH, 'r') as json_file:
       magicSplitList = json.load(json_file)
   except Exception as e:
-    logger.error("[ERROR]", e)
+    logger.error(e)
 
   magicSplitData = None
 
@@ -212,9 +212,9 @@ def loadOrGenerateMagicSplitListItem(investment: dict):
       with open(JSON_FILE_PATH, 'w') as json_file:
         json.dump(magicSplitList, json_file)
     except Exception as e:
-      logger.error("[ERROR]", e)
+      logger.error(e)
 
-    logger.info("========== loadOrGenerateMagicSplitListItem End ==========")
+  logger.info("========== loadOrGenerateMagicSplitListItem End ==========")
 
   return magicSplitList
 
@@ -255,7 +255,7 @@ def calculateProfit(balances, ticker):
         break
 
     except Exception as e:
-      logger.error("[ERROR]", e)
+      logger.error(e)
 
   return profit
 
@@ -312,7 +312,6 @@ for investment in investmentList:
     if magicSplit['ticker'] == ticker:
       time.sleep(0.3)
       df = pyupbit.get_ohlcv(ticker, interval="day")
-      logger.info(df)
 
       # 전일 시가
       yesterdayOpeningPrice = df['open'].iloc[-2]
