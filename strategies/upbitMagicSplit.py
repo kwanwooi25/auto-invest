@@ -311,7 +311,7 @@ for investment in investmentList:
       # 1차수 매수되지 않았으면 1차수 매수
       for purchasePlan in magicSplit['purchasePlans']:
         if purchasePlan['order'] == 1:
-          if purchasePlan['hasBought'] == False and purchasePlan['date'] != dayInNumber:
+          if purchasePlan['hasBought'] == False and magicSplit['date'] != dayInNumber:
             if yesterdayOpeningPrice < yesterdayClosingPrice and (yesterdayClosingPrice >= ma5Yesterday or ma5TwoDaysAgo <= ma5Yesterday):
               # 누적 실현손익 초기화
               purchasePlan['realizedPNL'] = 0
