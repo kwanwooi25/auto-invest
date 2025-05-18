@@ -401,8 +401,8 @@ for investment in investmentList:
             slack.sendMessage(message)
 
             # 1차수 매도인 경우 오늘 날짜를 넣어서 오늘 다시 1차 매수가 되지 않도록 함
-            if purchasePlan['order'] == 1:
-              purchasePlan['date'] = dayInNumber
+            # if purchasePlan['order'] == 1:
+            #   purchasePlan['date'] = dayInNumber
 
             with open(JSON_FILE_PATH, 'w') as json_file:
               json.dump(magicSplitList, json_file)
