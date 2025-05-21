@@ -270,15 +270,15 @@ totalMarketValue = upbitTools.getTotalMarketValue(balances)
 targetStockList = [
   {
     "ticker": "KRW-USDT",
-    "investmentRate": 0.4,
+    "investmentRate": 0.6,
   },
   {
     "ticker": "KRW-BTC",
-    "investmentRate": 0.3,
+    "investmentRate": 0.2,
   },
   {
     "ticker": "KRW-XRP",
-    "investmentRate": 0.3,
+    "investmentRate": 0.2,
   },
 ]
 
